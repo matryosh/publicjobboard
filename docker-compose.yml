@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+    server:
+        build:
+            context: ./server
+        container_name: server
+        command: python manage.py runserver 0.0.0.0:8000
+        ports:
+            - 8000:8000
+        volumes:
+            - ./server:/usr/src/app
+        env_file:
+            - ./server/.env
+    
+    client:
+        build:
+            context: ./client
+        command: npm start
+        container_name: client
+        depends_on:
+          - server
+        ports:
+          - 3000:3000
+        stdin_open: true
+        volumes:
+          - ./client:/usr/src/app
+        environment:
+          - CHOKIDAR_USEPOLLING=true
+          - REACT_APP_BASE_URL=http://localhost:8000
+    
+    jobboard-database:
+        container_name: jobboard-database
+        image: postgres:12-alpine
+        environment:
+            - POSTGRES_USER=jobboard
+            - POSTGRES_PASSWORD=jobboard
+        expose:
+            - 5432
+        volumes:
+            - jobboard-database:/var/lib/postgresql/data
+    
+volumes:
+  jobboard-database:
